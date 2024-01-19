@@ -33,6 +33,8 @@ const routes:Routes=[
     RouterModule.forRoot(routes),
     BrowserModule,
     HttpClientModule,
+   
+  
 
   ],
   providers: [],
