@@ -1,5 +1,9 @@
 <div class="main-content">
     <div class="section-content section-content-p30">
+
+        <h4>Category: {{ currentCategoryName }}</h4>
+        <hr>
+
         <div class="container-fluid">
             <div class="row">
 
@@ -7,12 +11,22 @@
                 <div *ngFor="let tempProduct of products" class="col-md-3">
 
                     <div class="product-box">
-                        <img src="{{ tempProduct.imageUrl }}" class="img-responsive">
+
+
+                         <a routerLink="/products/{{tempProduct.id}}" routerLinkActive="activate-link" style="text-decoration: none;">
+                        <img [src]="tempProduct.imageUrl" class="img-responsive" alt="Product Image">
+                        </a>  
+                        <a routerLink="/products/{{tempProduct.id}}" routerLinkActive="activate-link"  style="text-decoration: none;">
                         <h1>{{ tempProduct.name }}</h1>
+                        </a>
+
                         <div class="price">{{ tempProduct.unitPrice | currency:'USD' }}</div>
                         <a href="#" class="primary-btn">Add to cart</a>
                     </div>
 
+                </div>
+                <div *ngIf="products?.length == 0" class="alert alert-warning col-md-12" role="alert">
+                    No products found.
                 </div>
             </div>
         </div>
