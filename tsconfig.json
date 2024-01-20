@@ -21,7 +21,7 @@
     
     
     
-    "target": "es2015",
+    "target": "es2022",
     "module": "es2020",
     "moduleResolution": "node",
     "lib": ["es2018", "dom"],
