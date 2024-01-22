@@ -21,7 +21,7 @@
                         </a>
 
                         <div class="price">{{ tempProduct.unitPrice | currency:'USD' }}</div>
-                        <a href="#" class="primary-btn">Add to cart</a>
+                        <button (click)="addTocard(tempProduct)" class="primary-btn">Add to cart</button>
                     </div>
 
                 </div>

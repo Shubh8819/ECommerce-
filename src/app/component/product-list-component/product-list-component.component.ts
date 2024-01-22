@@ -87,4 +87,8 @@ export class ProductListComponentComponent implements OnInit {
                                               }                                     
                                              );
 }
+addTocard(theProduct:Product){
+  console.log(theProduct.name+''+theProduct.unitPrice)
+ // real work latter
+}
 }
