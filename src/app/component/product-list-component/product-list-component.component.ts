@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { CartSatus } from 'src/app/common/cart-satus';
 import { Product } from 'src/app/common/product';
+import { CartStatusService } from 'src/app/service/cart-status.service';
 import { ProductServiceService } from 'src/app/service/product-service.service';
 
 @Component({
@@ -21,7 +23,8 @@ export class ProductListComponentComponent implements OnInit {
    theTotalElements: number = 0;
    
   
-  constructor(private productService:ProductServiceService,private route:ActivatedRoute) { }
+  constructor(private productService:ProductServiceService,
+              private route:ActivatedRoute,private cartService:CartStatusService) { }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(()=>{
@@ -72,7 +75,7 @@ export class ProductListComponentComponent implements OnInit {
 
   this.previousCategoryId = this.currentCategoryId;
 
-  console.log(`currentCategoryId=${this.currentCategoryId}, thePageNumber=${this.thePageNumber}`);
+  //console.log(`currentCategoryId=${this.currentCategoryId}, thePageNumber=${this.thePageNumber}`);
 
   // now get the products for the given category id
   this.productService.getProductListPaginate(this.thePageNumber - 1,
@@ -90,5 +93,8 @@ export class ProductListComponentComponent implements OnInit {
 addTocard(theProduct:Product){
   console.log(theProduct.name+''+theProduct.unitPrice)
  // real work latter
+ const theCartItem = new CartSatus(theProduct);
+
+ this.cartService.addToCart(theCartItem);
 }
 }
