@@ -64,4 +64,21 @@ export class CartStatusService {
    this.totalPrice.next(totalPriceValue);
    this.totalQuantity.next(totalQuantityValue);
   }
+
+  decrementQuanties(theCartItem:CartSatus){
+      theCartItem.quantity--
+      if(theCartItem.quantity==0){
+       this.remove(theCartItem)
+      }else{
+        this.computeCartTotals()
+      }
+  }
+  remove(theCartItem: CartSatus) {
+    const index=this.cartItem.findIndex(tempcartItem=>tempcartItem.id===theCartItem.id);
+
+    if(index>-1){
+      this.cartItem.splice(index,1)
+      this.computeCartTotals()
+    }
+  }
 }
