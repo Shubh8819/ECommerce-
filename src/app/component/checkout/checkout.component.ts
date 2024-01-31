@@ -1,7 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormGroupName, Validators } from '@angular/forms';
+import { Route, Router } from '@angular/router';
 import { Country } from 'src/app/common/country';
+import { Order } from 'src/app/common/order';
+import { OrderItem } from 'src/app/common/order-item';
+import { Purchase } from 'src/app/common/purchase';
 import { State } from 'src/app/common/state';
+import { CartServiceService } from 'src/app/service/cart-service.service';
+import { CartStatusService } from 'src/app/service/cart-status.service';
 import { FormService } from 'src/app/service/form.service';
 import { ValidatorsCustom } from 'src/app/validation/validators';
 
@@ -23,13 +29,14 @@ export class CheckoutComponent implements OnInit{
   countries:Country[]=[];
   billingadressState:State[]=[]
   shippingAddressState:State[]=[]
+  
 
  
 
 
 
 
-  constructor(private forBuilder:FormBuilder,private formService:FormService){}
+  constructor(private forBuilder:FormBuilder,private formService:FormService,private cartDetailService:CartStatusService,private checkoutService:CartServiceService,private router: Router){}
   ngOnInit(): void {
    this.checkoutFormGroup=this.forBuilder.group({
     customer: this.forBuilder.group({
@@ -81,6 +88,9 @@ export class CheckoutComponent implements OnInit{
    this.formService.getCountry().subscribe(data=>{this.countries=data})
 
    
+   this.reviewCart();
+
+   
   }
 
   getState(formGroupName:string){
@@ -127,6 +137,79 @@ export class CheckoutComponent implements OnInit{
     if(this.checkoutFormGroup.invalid){
       this.checkoutFormGroup.markAllAsTouched();
     }
+
+
+     // set up order
+     let order = new Order(this.totalQuantity, this.totalPrice);
+
+     // get cart items
+     const cartItems = this.cartDetailService.cartItem;
+ 
+     // create orderItems from cartItems
+     // - long way
+     
+    //  let orderItems: OrderItem[] = [];
+    //  for (let i=0; i < cartItems.length; i++) {
+    //    orderItems[i] = new OrderItem(cartItems[i])
+    //  }
+     
+ 
+     // - short way of doing the same thingy
+     let orderItems: OrderItem[] = cartItems.map(tempCartItem => 
+                                new OrderItem(tempCartItem.imageUrl!,
+                                   tempCartItem.unitPrice!, tempCartItem.quantity, tempCartItem.id));
+ 
+     // set up purchase
+     let purchase = new Purchase();
+     
+     // populate purchase - customer
+     purchase.customer = this.checkoutFormGroup.controls['customer'].value;
+     
+     // populate purchase - shipping address
+     purchase.shippingAddress = this.checkoutFormGroup.controls['shippingAddress'].value;
+     const shippingState: State = JSON.parse(JSON.stringify(purchase.shippingAddress.state));
+     const shippingCountry: Country = JSON.parse(JSON.stringify(purchase.shippingAddress.country));
+     purchase.shippingAddress.state = shippingState.name;
+     purchase.shippingAddress.country = shippingCountry.name;
+ 
+     // populate purchase - billing address
+     purchase.billingAddress = this.checkoutFormGroup.controls['billingAddress'].value;
+     const billingState: State = JSON.parse(JSON.stringify(purchase.billingAddress.state));
+     const billingCountry: Country = JSON.parse(JSON.stringify(purchase.billingAddress.country));
+     purchase.billingAddress.state = billingState.name;
+     purchase.billingAddress.country = billingCountry.name;
+   
+     // populate purchase - order and orderItems
+     purchase.order = order;
+     purchase.orderItems = orderItems;
+ 
+     // call REST API via the CheckoutService
+     this.checkoutService.placeOrder(purchase).subscribe({
+         next: response => {
+           alert(`Your order has been received.\nOrder tracking number: ${response.orderTrackingNumber}`);
+ 
+           // reset cart
+           this.resetCart();
+ 
+         },
+         error: err => {
+           alert(`There was an error: ${err.message}`);
+         }
+       }
+     );
+  }
+
+  resetCart() {
+    // reset cart data
+    this.cartDetailService.cartItem = [];
+    this.cartDetailService.totalPrice.next(0);
+    this.cartDetailService.totalQuantity.next(0);
+    
+    // reset the form
+    this.checkoutFormGroup.reset();
+
+    // navigate back to the products page
+    this.router.navigateByUrl("/products");
   }
 
   handleMonth(){
@@ -146,6 +229,17 @@ export class CheckoutComponent implements OnInit{
     })
   
   }
+
+  reviewCart(){
+    this.cartDetailService.totalPrice.subscribe(data=>{
+      this.totalPrice=data;
+    })
+    this.cartDetailService.totalQuantity.subscribe(data=>{
+      this.totalQuantity=data;
+    })
+    this.cartDetailService.computeCartTotals()
+  }
+
 
 
 }

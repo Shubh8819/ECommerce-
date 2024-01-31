@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CartSatus } from '../common/cart-satus';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import { Product } from '../common/product';
 
 @Injectable({
@@ -9,13 +9,29 @@ import { Product } from '../common/product';
 export class CartStatusService {
 
   cartItem:CartSatus[]=[];
+  storage:Storage=localStorage
 
   //Subject is sub class of Observable we use to subcribe event in our code 
-  totalPrice:Subject<number>=new Subject<number>();
-  totalQuantity:Subject<number>=new Subject<number>();
+  totalPrice:Subject<number>=new BehaviorSubject<number>(0);
+  totalQuantity:Subject<number>=new BehaviorSubject<number>(0);
 
 
-  constructor() { }
+  constructor() { 
+    //set the data in local storage
+    let data = JSON.parse(this.storage.getItem('cartItems')!);
+
+    if (data != null) {
+      this.cartItem = data;
+      this.computeCartTotals();
+    }
+      
+      // compute totals based on the data that is read from storage
+      
+  }
+ //get the data form storage 
+  pursistCartItem(){
+    this.storage.setItem('cartItems',JSON.stringify(this.cartItem))
+  }
 
   addToCart(theCartItem:CartSatus){
     // cheack the item in cart 
@@ -63,6 +79,8 @@ export class CartStatusService {
    // publish the new values ... all subscribers will receive the new data
    this.totalPrice.next(totalPriceValue);
    this.totalQuantity.next(totalQuantityValue);
+
+   this.pursistCartItem()
   }
 
   decrementQuanties(theCartItem:CartSatus){
